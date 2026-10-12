@@ -1,16 +1,18 @@
 package com.codefactory.dev_social_network.usuarios.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.codefactory.dev_social_network.autenticacion.interfaces.CredencialService;
-import com.codefactory.dev_social_network.shared.exception.EmailDuplicadoException;
+import com.codefactory.dev_social_network.usuarios.dto.RegistrationData;
 import com.codefactory.dev_social_network.usuarios.entity.UserProfileEntity;
 import com.codefactory.dev_social_network.usuarios.entity.Usuario;
 import com.codefactory.dev_social_network.usuarios.interfaces.PasswordHasher;
 import com.codefactory.dev_social_network.usuarios.interfaces.RegistrarUsuarioUseCase;
+import com.codefactory.dev_social_network.usuarios.interfaces.RegistrationRule;
 import com.codefactory.dev_social_network.usuarios.interfaces.UserProfileRepositoryPort;
 import com.codefactory.dev_social_network.usuarios.interfaces.UsuarioRepositoryPort;
 
@@ -21,39 +23,34 @@ public class RegistrarUsuarioUseCaseImpl implements RegistrarUsuarioUseCase {
     private final CredencialService credencialService;
     private final UserProfileRepositoryPort userProfileRepositoryPort;
     private final PasswordHasher passwordHasher;
-    private final EmailValidator emailValidator;
-    private final PasswordValidator passwordValidator;
+    private final List<RegistrationRule> rules;
 
     public RegistrarUsuarioUseCaseImpl(
             UsuarioRepositoryPort usuarioRepositoryPort,
             CredencialService credencialService,
             UserProfileRepositoryPort userProfileRepositoryPort,
             PasswordHasher passwordHasher,
-            EmailValidator emailValidator,
-            PasswordValidator passwordValidator) {
+            List<RegistrationRule> rules) {
         this.usuarioRepositoryPort = usuarioRepositoryPort;
         this.credencialService = credencialService;
         this.userProfileRepositoryPort = userProfileRepositoryPort;
         this.passwordHasher = passwordHasher;
-        this.emailValidator = emailValidator;
-        this.passwordValidator = passwordValidator;
+        this.rules = rules;
     }
 
     @Override
     @Transactional
-    public UUID registrar(String email, String nombre, String apellido, String contrasena) {
+    public UUID registrar(RegistrationData data) {
 
-        emailValidator.validar(email);
-        passwordValidator.validar(contrasena);
-
-        if (usuarioRepositoryPort.existePorEmail(email)) {
-            throw new EmailDuplicadoException(email);
+        for (RegistrationRule rule : rules) {
+            rule.validate(data);
         }
 
-        Usuario usuarioGuardado = usuarioRepositoryPort.guardar(new Usuario(nombre, apellido, email));
+        Usuario usuarioGuardado = usuarioRepositoryPort.guardar(
+                new Usuario(data.username(), data.nombre(), data.apellido(), data.email()));
 
         credencialService.crearCredencialLocal(
-                usuarioGuardado.getId(), passwordHasher.hashear(contrasena));
+                usuarioGuardado.getId(), passwordHasher.hashear(data.contrasena()));
 
         userProfileRepositoryPort.guardar(new UserProfileEntity(usuarioGuardado));
 
