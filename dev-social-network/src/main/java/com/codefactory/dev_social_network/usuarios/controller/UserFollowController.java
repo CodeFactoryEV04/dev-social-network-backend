@@ -37,7 +37,7 @@ public class UserFollowController {
     @PostMapping
     public ResponseEntity<FollowedUserDTO> follow(@Valid @RequestBody FollowUserRequestDTO request) {
         UUID followerId = currentUserPort.currentUserId();
-        FollowedUserDTO followed = followUserUseCase.follow(followerId, request.email());
+        FollowedUserDTO followed = followUserUseCase.follow(followerId, request.target());
         return ResponseEntity.status(HttpStatus.CREATED).body(followed);
     }
 

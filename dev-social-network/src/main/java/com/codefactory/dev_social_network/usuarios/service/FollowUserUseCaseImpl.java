@@ -6,42 +6,39 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.codefactory.dev_social_network.shared.exception.UserNotFoundException;
 import com.codefactory.dev_social_network.usuarios.dto.FollowedUserDTO;
 import com.codefactory.dev_social_network.usuarios.dto.UserSummary;
 import com.codefactory.dev_social_network.usuarios.interfaces.FollowRule;
 import com.codefactory.dev_social_network.usuarios.interfaces.FollowUserUseCase;
 import com.codefactory.dev_social_network.usuarios.interfaces.FollowWriterPort;
-import com.codefactory.dev_social_network.usuarios.interfaces.UserFinderByEmailPort;
 
 @Service
 public class FollowUserUseCaseImpl implements FollowUserUseCase {
 
-    private final UserFinderByEmailPort userFinderByEmailPort;
+    private final FollowTargetResolver followTargetResolver;
     private final FollowWriterPort followWriterPort;
     private final List<FollowRule> rules;
 
-    public FollowUserUseCaseImpl(UserFinderByEmailPort userFinderByEmailPort,
+    public FollowUserUseCaseImpl(FollowTargetResolver followTargetResolver,
                                  FollowWriterPort followWriterPort,
                                  List<FollowRule> rules) {
-        this.userFinderByEmailPort = userFinderByEmailPort;
+        this.followTargetResolver = followTargetResolver;
         this.followWriterPort = followWriterPort;
         this.rules = rules;
     }
 
     @Override
     @Transactional
-    public FollowedUserDTO follow(UUID followerId, String targetEmail) {
+    public FollowedUserDTO follow(UUID followerId, String target) {
 
-        UserSummary target = userFinderByEmailPort.buscarPorEmail(targetEmail)
-                .orElseThrow(UserNotFoundException::new);
+        UserSummary destino = followTargetResolver.resolve(target);
 
         for (FollowRule rule : rules) {
-            rule.validate(followerId, target.id());
+            rule.validate(followerId, destino.id());
         }
 
-        followWriterPort.save(followerId, target.id());
+        followWriterPort.save(followerId, destino.id());
 
-        return FollowedUserDTO.from(target);
+        return FollowedUserDTO.from(destino);
     }
 }
