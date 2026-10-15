@@ -1,0 +1,68 @@
+name: SonarCloud
+
+on:
+  push:
+    branches: [test]
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+jobs:
+  sonarcloud:
+    name: Build, tests y análisis
+    runs-on: ubuntu-latest
+
+    # Postgres para el test de contexto (@SpringBootTest)
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: codefactory
+          POSTGRES_USER: codefactory
+          POSTGRES_PASSWORD: codefactory
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U codefactory -d codefactory"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    defaults:
+      run:
+        working-directory: dev-social-network
+
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_DATABASE: codefactory
+      DB_USERNAME: codefactory
+      DB_PASSWORD: codefactory
+      # Solo para tests en CI; no es la clave real de la aplicación.
+      APP_JWT_SECRET: ci-only-jwt-secret-0123456789abcdef0123456789abcdef
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Sonar necesita el historial completo para el blame
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Cache de SonarCloud
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Build, tests y análisis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: >-
+          chmod +x mvnw &&
+          ./mvnw -B clean verify sonar:sonar
+          -Djacoco.haltOnFailure=false
