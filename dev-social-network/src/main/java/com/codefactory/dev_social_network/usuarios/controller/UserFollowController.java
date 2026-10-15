@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import com.codefactory.dev_social_network.shared.config.CurrentUserPort;
+import com.codefactory.dev_social_network.usuarios.dto.FollowResponseDTO;
 import com.codefactory.dev_social_network.usuarios.dto.FollowUserRequestDTO;
 import com.codefactory.dev_social_network.usuarios.dto.FollowedUserDTO;
 import com.codefactory.dev_social_network.usuarios.interfaces.FollowUserUseCase;
@@ -35,10 +37,12 @@ public class UserFollowController {
     }
 
     @PostMapping
-    public ResponseEntity<FollowedUserDTO> follow(@Valid @RequestBody FollowUserRequestDTO request) {
+    public ResponseEntity<FollowResponseDTO> follow(@Valid @RequestBody FollowUserRequestDTO request) {
         UUID followerId = currentUserPort.currentUserId();
         FollowedUserDTO followed = followUserUseCase.follow(followerId, request.target());
-        return ResponseEntity.status(HttpStatus.CREATED).body(followed);
+        String name = followed.username() != null ? followed.username() : followed.fullName();
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new FollowResponseDTO("Estás siguiendo a " + name, followed));
     }
 
     @GetMapping
