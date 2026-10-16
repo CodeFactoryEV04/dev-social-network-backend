@@ -8,11 +8,8 @@ import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 import java.time.OffsetDateTime;
-import java.util.Optional;
 
 public interface DiscussionResolutionRepository extends Repository<Discussion, Long> {
-
-    Optional<Discussion> findById(Long id);
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("""
