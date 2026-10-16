@@ -3,15 +3,16 @@ package com.codefactory.dev_social_network.discusiones.service;
 import com.codefactory.dev_social_network.discusiones.dto.ResolveDiscussionResponse;
 import com.codefactory.dev_social_network.discusiones.entity.Discussion;
 import com.codefactory.dev_social_network.discusiones.entity.DiscussionStatus;
+import com.codefactory.dev_social_network.discusiones.interfaces.DiscussionFinderPort;
+import com.codefactory.dev_social_network.discusiones.interfaces.DiscussionResolutionRule;
+import com.codefactory.dev_social_network.discusiones.interfaces.DiscussionResolverPort;
 import com.codefactory.dev_social_network.discusiones.interfaces.ResolveDiscussionUseCase;
-import com.codefactory.dev_social_network.discusiones.repository.DiscussionResolutionRepository;
 import com.codefactory.dev_social_network.shared.exception.DiscusionNoEncontradaException;
 import com.codefactory.dev_social_network.shared.exception.DiscusionYaResueltaException;
-import com.codefactory.dev_social_network.shared.exception.SoloAutorPuedeResolverException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -19,35 +20,32 @@ public class ResolveDiscussionUseCaseImpl implements ResolveDiscussionUseCase {
 
     private static final String SUCCESS_MESSAGE = "La discusión ha sido marcada como resuelta";
 
-    private final DiscussionResolutionRepository discussionResolutionRepository;
+    private final DiscussionFinderPort discussionFinderPort;
+    private final DiscussionResolverPort discussionResolverPort;
+    private final List<DiscussionResolutionRule> rules;
 
-    public ResolveDiscussionUseCaseImpl(DiscussionResolutionRepository discussionResolutionRepository) {
-        this.discussionResolutionRepository = discussionResolutionRepository;
+    public ResolveDiscussionUseCaseImpl(
+            DiscussionFinderPort discussionFinderPort,
+            DiscussionResolverPort discussionResolverPort,
+            List<DiscussionResolutionRule> rules
+    ) {
+        this.discussionFinderPort = discussionFinderPort;
+        this.discussionResolverPort = discussionResolverPort;
+        this.rules = rules;
     }
 
     @Override
     @Transactional
     public ResolveDiscussionResponse resolve(UUID userId, Long discussionId) {
 
-        Discussion discussion = discussionResolutionRepository.findById(discussionId)
+        Discussion discussion = discussionFinderPort.findById(discussionId)
                 .orElseThrow(DiscusionNoEncontradaException::new);
 
-        if (!discussion.getUserId().equals(userId)) {
-            throw new SoloAutorPuedeResolverException();
+        for (DiscussionResolutionRule rule : rules) {
+            rule.validate(discussion, userId);
         }
 
-        if (discussion.getStatus() == DiscussionStatus.RESOLVED) {
-            throw new DiscusionYaResueltaException();
-        }
-
-        int updatedRows = discussionResolutionRepository.updateStatus(
-                discussionId,
-                DiscussionStatus.OPEN,
-                DiscussionStatus.RESOLVED,
-                OffsetDateTime.now()
-        );
-
-        if (updatedRows == 0) {
+        if (!discussionResolverPort.markAsResolved(discussionId)) {
             throw new DiscusionYaResueltaException();
         }
 
