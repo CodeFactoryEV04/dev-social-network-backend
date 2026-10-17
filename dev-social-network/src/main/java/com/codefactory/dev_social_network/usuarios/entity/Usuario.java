@@ -18,6 +18,9 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
+    @Column(name = "username", unique = true, length = 50)
+    private String username;
+
     @Column(name = "nombre", nullable = false)
     private String nombre;
 
@@ -27,13 +30,19 @@ public class Usuario {
     @Column(name = "email", unique = true, nullable = false)
     private String email;
 
-    @Column (name = "fecha_creacion", nullable = false)
+    @Column(name = "fecha_creacion", nullable = false)
     private LocalDate fechaCreacion;
 
     protected Usuario() {
     }
 
+    // Constructor anterior: sin username, para no romper el registro actual
     public Usuario(String nombre, String apellido, String email) {
+        this(null, nombre, apellido, email);
+    }
+
+    public Usuario(String username, String nombre, String apellido, String email) {
+        this.username = username;
         this.nombre = nombre;
         this.apellido = apellido;
         this.email = email;
@@ -42,6 +51,10 @@ public class Usuario {
 
     public UUID getId() {
         return id;
+    }
+
+    public String getUsername() {
+        return username;
     }
 
     public String getNombre() {

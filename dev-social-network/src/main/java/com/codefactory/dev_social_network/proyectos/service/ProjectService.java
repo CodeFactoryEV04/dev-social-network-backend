@@ -6,6 +6,7 @@ import com.codefactory.dev_social_network.proyectos.entity.Project;
 import com.codefactory.dev_social_network.proyectos.entity.Technology;
 import com.codefactory.dev_social_network.proyectos.repository.ProjectRepository;
 import com.codefactory.dev_social_network.proyectos.repository.TechnologyRepository;
+import com.codefactory.dev_social_network.shared.config.CurrentUserPort;
 import com.codefactory.dev_social_network.shared.exception.BusinessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -14,26 +15,29 @@ import org.springframework.transaction.annotation.Transactional;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final TechnologyRepository technologyRepository;
+    private final CurrentUserPort currentUserPort;
 
     public ProjectService(
             ProjectRepository projectRepository,
-            TechnologyRepository technologyRepository
+            TechnologyRepository technologyRepository,
+            CurrentUserPort currentUserPort
     ) {
         this.projectRepository = projectRepository;
         this.technologyRepository = technologyRepository;
+        this.currentUserPort = currentUserPort;
     }
 
     @Transactional
     public ProjectResponse createProject(CreateProjectRequest request) {
 
-        // Temporary user ID until authentication is implemented
-        Long userId = 1L;
+        UUID userId = currentUserPort.currentUserId();
 
         validateRepositoryUrl(request.getRepositoryUrl());
 
