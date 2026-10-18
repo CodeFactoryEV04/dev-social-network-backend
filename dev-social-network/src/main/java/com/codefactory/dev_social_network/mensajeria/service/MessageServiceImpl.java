@@ -1,86 +1,84 @@
-package com.codefactory.dev_social_network.Mensajeria.service;
+package com.codefactory.dev_social_network.mensajeria.service;
 
-import com.codefactory.dev_social_network.Mensajeria.dto.SendMessageRequest;
-import com.codefactory.dev_social_network.Mensajeria.dto.MessageResponse;
-import com.codefactory.dev_social_network.Mensajeria.entity.MessageEntity;
-import com.codefactory.dev_social_network.Mensajeria.repository.MessageRepository;
-import com.codefactory.dev_social_network.shared.exception.BusinessException;
-import com.codefactory.dev_social_network.usuarios.repository.UsuarioJpaRepository;
-
-import org.springframework.http.HttpStatus;
+import com.codefactory.dev_social_network.mensajeria.dto.MessageResponse;
+import com.codefactory.dev_social_network.mensajeria.dto.SendMessageRequest;
+import com.codefactory.dev_social_network.mensajeria.entity.ConversationEntity;
+import com.codefactory.dev_social_network.mensajeria.entity.MessageEntity;
+import com.codefactory.dev_social_network.shared.exception.ConversationAccessDeniedException;
+import com.codefactory.dev_social_network.shared.exception.ConversationNotFoundException;
+import com.codefactory.dev_social_network.shared.exception.RecipientNotFoundException;
+import com.codefactory.dev_social_network.shared.exception.SelfMessageException;
+import com.codefactory.dev_social_network.mensajeria.interfaces.MessageService;
+import com.codefactory.dev_social_network.mensajeria.interfaces.UserDirectory;
+import com.codefactory.dev_social_network.mensajeria.repository.ConversationRepository;
+import com.codefactory.dev_social_network.mensajeria.repository.MessageRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Service
 public class MessageServiceImpl implements MessageService {
 
-    private static final int MAX_CARACTERES = 2000;
-
+    private final UserDirectory userDirectory;
+    private final ConversationResolver conversationResolver;
+    private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
-    private final UsuarioJpaRepository usuarioRepository;
+    private final MessageMapper messageMapper;
+    private final Clock clock;
 
-    public MessageServiceImpl(
-            MessageRepository messageRepository,
-            UsuarioJpaRepository usuarioRepository
-    ) {
+    public MessageServiceImpl(UserDirectory userDirectory,
+                              ConversationResolver conversationResolver,
+                              ConversationRepository conversationRepository,
+                              MessageRepository messageRepository,
+                              MessageMapper messageMapper,
+                              Clock clock) {
+        this.userDirectory = userDirectory;
+        this.conversationResolver = conversationResolver;
+        this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
-        this.usuarioRepository = usuarioRepository;
+        this.messageMapper = messageMapper;
+        this.clock = clock;
     }
 
+    @Override
     @Transactional
-    public MensajeResponse enviarMensaje(
-            UUID remitenteId,
-            EnviarMensajeRequest request
-    ) {
-        if (request == null || request.getContenido() == null) {
-            throw new BusinessException(
-                    "MENSAJE_INVALIDO",
-                    "El contenido del mensaje es obligatorio",
-                    HttpStatus.BAD_REQUEST
-            );
+    public MessageResponse sendMessage(UUID senderId, SendMessageRequest request) {
+        UUID receiverId = userDirectory.findUserIdByUsername(request.receiverUsername())
+                .orElseThrow(RecipientNotFoundException::new);
+
+        if (senderId.equals(receiverId)) {
+            throw new SelfMessageException();
         }
 
-        String contenido = request.getContenido();
-        UUID destinatarioId = request.getDestinatarioId();
+        ConversationEntity conversation = conversationResolver.resolve(senderId, receiverId);
 
+        MessageEntity message = new MessageEntity();
+        message.setConversation(conversation);
+        message.setSenderId(senderId);
+        message.setContent(request.content());
+        message.setSentAt(Instant.now(clock));
 
-        if (contenido.length() > MAX_CARACTERES) {
-            throw new BusinessException(
-                    "MENSAJE_EXCEDE_LIMITE",
-                    "Mensaje excede los 2000 caracteres",
-                    HttpStatus.BAD_REQUEST
-            );
+        return messageMapper.toResponse(messageRepository.save(message));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MessageResponse> getConversationMessages(UUID requesterId, UUID conversationId) {
+        ConversationEntity conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(ConversationNotFoundException::new);
+
+        boolean isParticipant = requesterId.equals(conversation.getParticipantOneId())
+                || requesterId.equals(conversation.getParticipantTwoId());
+        if (!isParticipant) {
+            throw new ConversationAccessDeniedException();
         }
 
-
-        if (remitenteId.equals(destinatarioId)) {
-            throw new BusinessException(
-                    "MENSAJE_A_SI_MISMO",
-                    "No puedes enviarte un mensaje a ti mismo",
-                    HttpStatus.BAD_REQUEST
-            );
-        }
-
-
-        if (destinatarioId == null
-                || !usuarioRepository.existsById(destinatarioId)) {
-            throw new BusinessException(
-                    "USUARIO_NO_EXISTE",
-                    "Usuario no existe",
-                    HttpStatus.NOT_FOUND
-            );
-        }
-
-        MessageEntity mensaje = new MessageEntity(
-                remitenteId,
-                destinatarioId,
-                contenido
-        );
-
-        messageRepository.save(mensaje);
-
-        return new MensajeResponse("Mensaje enviado");
+        return messageRepository.findByConversation_IdOrderBySentAtAsc(conversationId).stream()
+                .map(messageMapper::toResponse)
+                .toList();
     }
 }

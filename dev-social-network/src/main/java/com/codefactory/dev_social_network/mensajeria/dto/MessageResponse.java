@@ -1,6 +1,7 @@
-package com.codefactory.dev_social_network.Mensajeria.dto;
+package com.codefactory.dev_social_network.mensajeria.dto;
 
+import java.time.Instant;
 import java.util.UUID;
-import java.time.LocalDateTime;
 
-public record MessageResponse(UUID id, UUID senderId, UUID conversationId, String content, LocalDateTime sentAt) {}
+public record MessageResponse(UUID id, UUID conversationId, UUID senderId, String content, Instant sentAt) {
+}

@@ -1,75 +1,37 @@
-package com.codefactory.dev_social_network.Mensajeria.entity;
+package com.codefactory.dev_social_network.mensajeria.entity;
 
-import java.time.LocalDateTime;
+import jakarta.persistence.*;
+import java.time.Instant;
 import java.util.UUID;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-
 @Entity
-@Table(name = "conversaciones")
+@Table(name = "conversations",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_conversation_participants",
+                columnNames = {"participant_one_id", "participant_two_id"}))
 public class ConversationEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id")
     private UUID id;
 
-    @Column(name = "participante_uno", nullable = false)
-    private UUID participantOne;
+    @Column(name = "participant_one_id", nullable = false)
+    private UUID participantOneId;
 
-    @Column(name = "participante_dos", nullable = false)
-    private UUID participantTwo;
+    @Column(name = "participant_two_id", nullable = false)
+    private UUID participantTwoId;
 
-    @Column(name = "fecha_creacion", nullable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
 
-    public ConversationEntity() {}
-
-    public ConversationEntity(UUID participantOne, UUID participantTwo, LocalDateTime createdAt) {
-        this.participantOne = participantOne;
-        this.participantTwo = participantTwo;
-        this.createdAt = LocalDateTime.now();;
+    public ConversationEntity() {
     }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public UUID getParticipantOne() {
-        return participantOne;
-    }
-
-    public void setParticipantOne(UUID participantOne) {
-        this.participantOne = participantOne;
-    }
-
-    public UUID getParticipantTwo() {
-        return participantTwo;
-    }
-
-    public void setParticipantTwo(UUID participantTwo) {
-        this.participantTwo = participantTwo;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt() {
-        this.createdAt = LocalDateTime.now();
-    }
-
+    public UUID getId() { return id; }
+    public UUID getParticipantOneId() { return participantOneId; }
+    public void setParticipantOneId(UUID participantOneId) { this.participantOneId = participantOneId; }
+    public UUID getParticipantTwoId() { return participantTwoId; }
+    public void setParticipantTwoId(UUID participantTwoId) { this.participantTwoId = participantTwoId; }
+    public Instant getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

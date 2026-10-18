@@ -1,9 +1,14 @@
-package main.java.com.codefactory.dev_social_network.Mensajeria.interfaces;
+package com.codefactory.dev_social_network.mensajeria.interfaces;
 
-import com.codefactory.dev_social_network.Mensajeria.dto.SendMessageRequest;
-import com.codefactory.dev_social_network.Mensajeria.dto.MessageResponse;
+import com.codefactory.dev_social_network.mensajeria.dto.MessageResponse;
+import com.codefactory.dev_social_network.mensajeria.dto.SendMessageRequest;
+
+import java.util.List;
 import java.util.UUID;
 
 public interface MessageService {
+
     MessageResponse sendMessage(UUID senderId, SendMessageRequest request);
+
+    List<MessageResponse> getConversationMessages(UUID requesterId, UUID conversationId);
 }
