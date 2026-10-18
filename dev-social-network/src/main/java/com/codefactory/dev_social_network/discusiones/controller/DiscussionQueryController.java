@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/v1/discussions")
 @Tag(
@@ -30,7 +32,7 @@ public class DiscussionQueryController {
 
     @Operation(
             summary = "Get a discussion by id",
-            description = "Returns the id, title, status (OPEN or RESOLVED) and author of a discussion. Any authenticated user can query it"
+            description = "Returns the id, title, status (ABIERTA or RESUELTA) and author of a discussion. Any authenticated user can query it"
     )
     @ApiResponses({
             @ApiResponse(
@@ -45,7 +47,7 @@ public class DiscussionQueryController {
             @ApiResponse(responseCode = "404", description = "Discussion not found")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<DiscussionDetailResponse> getDiscussion(@PathVariable("id") Long id) {
+    public ResponseEntity<DiscussionDetailResponse> getDiscussion(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(getDiscussionUseCase.getById(id));
     }
 }

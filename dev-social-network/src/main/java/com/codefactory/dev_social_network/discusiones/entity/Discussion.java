@@ -6,78 +6,78 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "discussions")
+@Table(name = "discusiones")
 public class Discussion {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private UUID id;
 
-    @Column(name = "user_id", nullable = false)
-    private UUID userId;
+    @Column(name = "autor_id", nullable = false)
+    private UUID autorId;
 
-    @Column(name = "technology_id", nullable = false)
-    private Long technologyId;
+    @Column(name = "id_tecnologia", nullable = false)
+    private UUID idTecnologia;
 
-    @Column(nullable = false, length = 150)
-    private String title;
+    @Column(name = "titulo", nullable = false, length = 150)
+    private String titulo;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String content;
+    @Column(name = "contenido", nullable = false, columnDefinition = "TEXT")
+    private String contenido;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private DiscussionStatus status;
+    @Column(name = "estado", nullable = false, length = 20)
+    private DiscussionStatus estado;
 
-    @Column(name = "created_at", nullable = false)
-    private OffsetDateTime createdAt;
+    @Column(name = "fecha_creacion", nullable = false)
+    private OffsetDateTime fechaCreacion;
 
-    @Column(name = "updated_at", nullable = false)
-    private OffsetDateTime updatedAt;
+    @Column(name = "ultima_actualizacion", nullable = false)
+    private OffsetDateTime ultimaActualizacion;
 
     protected Discussion() {
     }
 
-    public Discussion(UUID userId, Long technologyId, String title, String content) {
+    public Discussion(UUID autorId, UUID idTecnologia, String titulo, String contenido) {
         OffsetDateTime now = OffsetDateTime.now();
-        this.userId = userId;
-        this.technologyId = technologyId;
-        this.title = title;
-        this.content = content;
-        this.status = DiscussionStatus.OPEN;
-        this.createdAt = now;
-        this.updatedAt = now;
+        this.autorId = autorId;
+        this.idTecnologia = idTecnologia;
+        this.titulo = titulo;
+        this.contenido = contenido;
+        this.estado = DiscussionStatus.ABIERTA;
+        this.fechaCreacion = now;
+        this.ultimaActualizacion = now;
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public UUID getUserId() {
-        return userId;
+    public UUID getAutorId() {
+        return autorId;
     }
 
-    public Long getTechnologyId() {
-        return technologyId;
+    public UUID getIdTecnologia() {
+        return idTecnologia;
     }
 
-    public String getTitle() {
-        return title;
+    public String getTitulo() {
+        return titulo;
     }
 
-    public String getContent() {
-        return content;
+    public String getContenido() {
+        return contenido;
     }
 
-    public DiscussionStatus getStatus() {
-        return status;
+    public DiscussionStatus getEstado() {
+        return estado;
     }
 
-    public OffsetDateTime getCreatedAt() {
-        return createdAt;
+    public OffsetDateTime getFechaCreacion() {
+        return fechaCreacion;
     }
 
-    public OffsetDateTime getUpdatedAt() {
-        return updatedAt;
+    public OffsetDateTime getUltimaActualizacion() {
+        return ultimaActualizacion;
     }
 }

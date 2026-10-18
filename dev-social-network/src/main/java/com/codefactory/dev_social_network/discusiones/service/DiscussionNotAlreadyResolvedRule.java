@@ -14,8 +14,8 @@ import java.util.UUID;
 public class DiscussionNotAlreadyResolvedRule implements DiscussionResolutionRule {
 
     @Override
-    public void validate(Discussion discussion, UUID userId) {
-        if (discussion.getStatus() == DiscussionStatus.RESOLVED) {
+    public void validate(Discussion discussion, UUID autorId) {
+        if (discussion.getEstado() == DiscussionStatus.RESUELTA) {
             throw new DiscusionYaResueltaException();
         }
     }

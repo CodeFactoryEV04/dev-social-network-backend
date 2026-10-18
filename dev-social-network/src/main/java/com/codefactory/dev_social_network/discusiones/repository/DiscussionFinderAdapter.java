@@ -5,6 +5,7 @@ import com.codefactory.dev_social_network.discusiones.interfaces.DiscussionFinde
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class DiscussionFinderAdapter implements DiscussionFinderPort {
@@ -16,7 +17,7 @@ public class DiscussionFinderAdapter implements DiscussionFinderPort {
     }
 
     @Override
-    public Optional<Discussion> findById(Long discussionId) {
+    public Optional<Discussion> findById(UUID discussionId) {
         return discussionRepository.findById(discussionId);
     }
 }

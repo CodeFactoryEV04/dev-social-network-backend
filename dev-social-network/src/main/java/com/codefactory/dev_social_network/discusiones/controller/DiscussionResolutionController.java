@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/v1/discussions")
 @Tag(
@@ -52,7 +54,7 @@ public class DiscussionResolutionController {
             @ApiResponse(responseCode = "409", description = "Discussion already resolved")
     })
     @PatchMapping("/{id}/resolve")
-    public ResponseEntity<ResolveDiscussionResponse> resolveDiscussion(@PathVariable("id") Long id) {
+    public ResponseEntity<ResolveDiscussionResponse> resolveDiscussion(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(resolveDiscussionUseCase.resolve(currentUserPort.currentUserId(), id));
     }
 }
