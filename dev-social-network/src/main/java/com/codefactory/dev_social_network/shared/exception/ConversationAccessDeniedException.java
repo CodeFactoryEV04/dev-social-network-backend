@@ -1,7 +1,9 @@
 package com.codefactory.dev_social_network.shared.exception;
 
-public class ConversationAccessDeniedException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class ConversationAccessDeniedException extends BusinessException {
     public ConversationAccessDeniedException() {
-        super("No tienes acceso a esta conversación");
+        super("CONVERSATION_ACCESS_DENIED", "No tienes acceso a esta conversación", HttpStatus.FORBIDDEN);
     }
 }

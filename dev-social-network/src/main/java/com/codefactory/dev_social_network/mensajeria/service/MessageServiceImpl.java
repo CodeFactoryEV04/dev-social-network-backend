@@ -4,14 +4,15 @@ import com.codefactory.dev_social_network.mensajeria.dto.MessageResponse;
 import com.codefactory.dev_social_network.mensajeria.dto.SendMessageRequest;
 import com.codefactory.dev_social_network.mensajeria.entity.ConversationEntity;
 import com.codefactory.dev_social_network.mensajeria.entity.MessageEntity;
+import com.codefactory.dev_social_network.mensajeria.interfaces.MessageService;
+import com.codefactory.dev_social_network.mensajeria.repository.ConversationRepository;
+import com.codefactory.dev_social_network.mensajeria.repository.MessageRepository;
 import com.codefactory.dev_social_network.shared.exception.ConversationAccessDeniedException;
 import com.codefactory.dev_social_network.shared.exception.ConversationNotFoundException;
 import com.codefactory.dev_social_network.shared.exception.RecipientNotFoundException;
 import com.codefactory.dev_social_network.shared.exception.SelfMessageException;
-import com.codefactory.dev_social_network.mensajeria.interfaces.MessageService;
-import com.codefactory.dev_social_network.mensajeria.interfaces.UserDirectory;
-import com.codefactory.dev_social_network.mensajeria.repository.ConversationRepository;
-import com.codefactory.dev_social_network.mensajeria.repository.MessageRepository;
+import com.codefactory.dev_social_network.usuarios.dto.UsuarioDTO;
+import com.codefactory.dev_social_network.usuarios.interfaces.UsuarioQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,20 +24,20 @@ import java.util.UUID;
 @Service
 public class MessageServiceImpl implements MessageService {
 
-    private final UserDirectory userDirectory;
+    private final UsuarioQueryService usuarioQueryService;
     private final ConversationResolver conversationResolver;
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
     private final MessageMapper messageMapper;
     private final Clock clock;
 
-    public MessageServiceImpl(UserDirectory userDirectory,
+    public MessageServiceImpl(UsuarioQueryService usuarioQueryService,
                               ConversationResolver conversationResolver,
                               ConversationRepository conversationRepository,
                               MessageRepository messageRepository,
                               MessageMapper messageMapper,
                               Clock clock) {
-        this.userDirectory = userDirectory;
+        this.usuarioQueryService = usuarioQueryService;
         this.conversationResolver = conversationResolver;
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
@@ -47,7 +48,8 @@ public class MessageServiceImpl implements MessageService {
     @Override
     @Transactional
     public MessageResponse sendMessage(UUID senderId, SendMessageRequest request) {
-        UUID receiverId = userDirectory.findUserIdByUsername(request.receiverUsername())
+        UUID receiverId = usuarioQueryService.buscarPorEmail(request.receiverEmail())
+                .map(UsuarioDTO::id)
                 .orElseThrow(RecipientNotFoundException::new);
 
         if (senderId.equals(receiverId)) {

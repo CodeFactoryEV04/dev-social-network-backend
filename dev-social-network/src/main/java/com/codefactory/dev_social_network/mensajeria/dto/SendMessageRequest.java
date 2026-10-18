@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Size;
 
 public record SendMessageRequest(
         @NotBlank(message = "El destinatario es obligatorio")
-        String receiverUsername,
+        String receiverEmail,
 
         @NotBlank(message = "El mensaje no puede estar vacío")
         @Size(max = 2000, message = "Mensaje excede los 2000 caracteres")
