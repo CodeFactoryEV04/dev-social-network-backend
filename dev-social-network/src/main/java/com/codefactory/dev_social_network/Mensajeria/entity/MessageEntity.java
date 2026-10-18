@@ -1,73 +1,40 @@
 package com.codefactory.dev_social_network.Mensajeria.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-
-import java.time.LocalDateTime;
+import jakarta.persistence.*;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "mensajes_privados")
+@Table(name = "messages")
 public class MessageEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "remitente_id", nullable = false)
-    private UUID remitenteId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "conversation_id", nullable = false)
+    private ConversationEntity conversation;
 
-    @Column(name = "destinatario_id", nullable = false)
-    private UUID destinatarioId;
+    @Column(name = "sender_id", nullable = false)
+    private UUID senderId;
 
-    @Column(name = "contenido", nullable = false, length = 2000)
-    private String contenido;
+    @Column(nullable = false, length = 2000)
+    private String content;
 
-    @Column(name = "fecha_envio", nullable = false)
-    private LocalDateTime fechaEnvio;
+    @Column(name = "sent_at", nullable = false)
+    private Instant sentAt;
 
-    protected MessageEntity() {
+    public MessageEntity() {
     }
 
-    public MessageEntity(
-            UUID remitenteId,
-            UUID destinatarioId,
-            String contenido
-    ) {
-        this.remitenteId = remitenteId;
-        this.destinatarioId = destinatarioId;
-        this.contenido = contenido;
-    }
-
-    @PrePersist
-    protected void antesDeGuardar() {
-        if (fechaEnvio == null) {
-            fechaEnvio = LocalDateTime.now();
-        }
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public UUID getRemitenteId() {
-        return remitenteId;
-    }
-
-    public UUID getDestinatarioId() {
-        return destinatarioId;
-    }
-
-    public String getContenido() {
-        return contenido;
-    }
-
-    public LocalDateTime getFechaEnvio() {
-        return fechaEnvio;
-    }
+    public UUID getId() { return id; }
+    public ConversationEntity getConversation() { return conversation; }
+    public void setConversation(ConversationEntity conversation) { this.conversation = conversation; }
+    public UUID getSenderId() { return senderId; }
+    public void setSenderId(UUID senderId) { this.senderId = senderId; }
+    public String getContent() { return content; }
+    public void setContent(String content) { this.content = content; }
+    public Instant getSentAt() { return sentAt; }
+    public void setSentAt(Instant sentAt) { this.sentAt = sentAt; }
 }

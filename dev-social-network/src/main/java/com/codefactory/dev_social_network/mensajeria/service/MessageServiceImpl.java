@@ -1,7 +1,7 @@
 package com.codefactory.dev_social_network.Mensajeria.service;
 
-import com.codefactory.dev_social_network.Mensajeria.dto.EnviarMensajeRequest;
-import com.codefactory.dev_social_network.Mensajeria.dto.MensajeResponse;
+import com.codefactory.dev_social_network.Mensajeria.dto.SendMessageRequest;
+import com.codefactory.dev_social_network.Mensajeria.dto.MessageResponse;
 import com.codefactory.dev_social_network.Mensajeria.entity.MessageEntity;
 import com.codefactory.dev_social_network.Mensajeria.repository.MessageRepository;
 import com.codefactory.dev_social_network.shared.exception.BusinessException;
@@ -14,14 +14,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Service
-public class MensajeService {
+public class MessageServiceImpl implements MessageService {
 
     private static final int MAX_CARACTERES = 2000;
 
     private final MessageRepository messageRepository;
     private final UsuarioJpaRepository usuarioRepository;
 
-    public MensajeService(
+    public MessageServiceImpl(
             MessageRepository messageRepository,
             UsuarioJpaRepository usuarioRepository
     ) {
