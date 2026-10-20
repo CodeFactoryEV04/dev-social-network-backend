@@ -26,7 +26,7 @@ public class UserProfileEntity {
     @JoinColumn (name = "user_id", referencedColumnName = "id", nullable = false)
     private Usuario userId;
     
-    @Column (name = "created_at", unique= true, nullable = false)
+    @Column (name = "created_at", nullable = false)
     private LocalDate createdAt;
 
     @Column (name = "bio", unique = false, nullable = true, length = 500)

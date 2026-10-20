@@ -2,11 +2,12 @@ package com.codefactory.dev_social_network.proyectos.dto;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.UUID;
 
 public class ProjectResponse {
 
     private Long id;
-    private Long userId;
+    private UUID userId;
     private String title;
     private String description;
     private String repositoryUrl;
@@ -21,11 +22,11 @@ public class ProjectResponse {
         this.id = id;
     }
 
-    public Long getUserId() {
+    public UUID getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(UUID userId) {
         this.userId = userId;
     }
 
