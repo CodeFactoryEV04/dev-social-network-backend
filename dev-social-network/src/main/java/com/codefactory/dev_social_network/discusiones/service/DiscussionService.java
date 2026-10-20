@@ -52,6 +52,7 @@ public class DiscussionService {
     private DiscussionResponse mapToResponse(Discussion discussion, TecnologiaRef tecnologia) {
 
         DiscussionResponse response = new DiscussionResponse();
+
         response.setId(discussion.getId());
         response.setAutorId(discussion.getAutorId());
         response.setTecnologia(tecnologia.getNombreTecnologia());
