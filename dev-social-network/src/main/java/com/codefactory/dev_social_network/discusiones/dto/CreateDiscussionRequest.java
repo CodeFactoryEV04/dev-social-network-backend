@@ -4,39 +4,41 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
 public class CreateDiscussionRequest {
 
-    @NotBlank(message = "Title is required")
-    @Size(max = 150, message = "Title must not exceed 150 characters")
-    private String title;
+    @NotBlank(message = "El titulo es obligatorio")
+    @Size(max = 150, message = "El titulo no puede superar los 150 caracteres")
+    private String titulo;
 
-    @NotBlank(message = "Content is required")
-    private String content;
+    @NotBlank(message = "El contenido es obligatorio")
+    private String contenido;
 
-    @NotNull(message = "Technology is required")
-    private Long technologyId;
+    @NotNull(message = "La tecnologia es obligatoria")
+    private UUID idTecnologia;
 
-    public String getTitle() {
-        return title;
+    public String getTitulo() {
+        return titulo;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setTitulo(String titulo) {
+        this.titulo = titulo;
     }
 
-    public String getContent() {
-        return content;
+    public String getContenido() {
+        return contenido;
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    public void setContenido(String contenido) {
+        this.contenido = contenido;
     }
 
-    public Long getTechnologyId() {
-        return technologyId;
+    public UUID getIdTecnologia() {
+        return idTecnologia;
     }
 
-    public void setTechnologyId(Long technologyId) {
-        this.technologyId = technologyId;
+    public void setIdTecnologia(UUID idTecnologia) {
+        this.idTecnologia = idTecnologia;
     }
 }
