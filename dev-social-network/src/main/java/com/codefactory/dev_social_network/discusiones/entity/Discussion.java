@@ -1,11 +1,6 @@
 package com.codefactory.dev_social_network.discusiones.entity;
 
 import jakarta.persistence.*;
-
-package com.codefactory.dev_social_network.discusiones.entity;
-
-import jakarta.persistence.*;
-
 import java.time.OffsetDateTime;
 import java.util.UUID;
 

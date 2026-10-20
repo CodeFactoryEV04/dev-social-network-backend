@@ -36,13 +36,13 @@ public class ResolveDiscussionUseCaseImpl implements ResolveDiscussionUseCase {
 
     @Override
     @Transactional
-    public ResolveDiscussionResponse resolve(UUID userId, Long discussionId) {
+    public ResolveDiscussionResponse resolve(UUID autorId, UUID discussionId) {
 
         Discussion discussion = discussionFinderPort.findById(discussionId)
                 .orElseThrow(DiscusionNoEncontradaException::new);
 
         for (DiscussionResolutionRule rule : rules) {
-            rule.validate(discussion, userId);
+            rule.validate(discussion, autorId);
         }
 
         if (!discussionResolverPort.markAsResolved(discussionId)) {
@@ -51,7 +51,7 @@ public class ResolveDiscussionUseCaseImpl implements ResolveDiscussionUseCase {
 
         return new ResolveDiscussionResponse(
                 discussionId,
-                DiscussionStatus.RESOLVED,
+                DiscussionStatus.RESUELTA,
                 SUCCESS_MESSAGE
         );
     }

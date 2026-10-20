@@ -5,6 +5,7 @@ import com.codefactory.dev_social_network.discusiones.interfaces.DiscussionResol
 import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 @Component
 public class DiscussionResolverAdapter implements DiscussionResolverPort {
@@ -16,11 +17,11 @@ public class DiscussionResolverAdapter implements DiscussionResolverPort {
     }
 
     @Override
-    public boolean markAsResolved(Long discussionId) {
+    public boolean markAsResolved(UUID discussionId) {
         return discussionResolutionRepository.updateStatus(
                 discussionId,
-                DiscussionStatus.OPEN,
-                DiscussionStatus.RESOLVED,
+                DiscussionStatus.ABIERTA,
+                DiscussionStatus.RESUELTA,
                 OffsetDateTime.now()
         ) > 0;
     }
