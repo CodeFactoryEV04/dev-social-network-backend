@@ -99,7 +99,9 @@ class DiscussionServiceTest {
     // limpia de construir una instancia sin exponer un constructor publico que
     // nadie mas deberia usar es con reflexion, solo en el test.
     private TecnologiaRef newTecnologiaRef(UUID id, String nombre) throws Exception {
-        TecnologiaRef tecnologia = new TecnologiaRef();
+        java.lang.reflect.Constructor<TecnologiaRef> constructor = TecnologiaRef.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        TecnologiaRef tecnologia = constructor.newInstance();
         setField(tecnologia, "id", id);
         setField(tecnologia, "nombreTecnologia", nombre);
         return tecnologia;
