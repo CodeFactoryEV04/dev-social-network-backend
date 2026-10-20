@@ -8,3 +8,4 @@ public interface GetDiscussionUseCase {
 
     DiscussionDetailResponse getById(UUID discussionId);
 }
+

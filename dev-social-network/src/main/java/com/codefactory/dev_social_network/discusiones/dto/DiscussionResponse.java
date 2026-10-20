@@ -71,3 +71,4 @@ public class DiscussionResponse {
         this.fechaCreacion = fechaCreacion;
     }
 }
+

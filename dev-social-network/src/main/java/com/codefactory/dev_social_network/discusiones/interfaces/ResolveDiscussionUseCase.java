@@ -8,3 +8,4 @@ public interface ResolveDiscussionUseCase {
 
     ResolveDiscussionResponse resolve(UUID autorId, UUID discussionId);
 }
+

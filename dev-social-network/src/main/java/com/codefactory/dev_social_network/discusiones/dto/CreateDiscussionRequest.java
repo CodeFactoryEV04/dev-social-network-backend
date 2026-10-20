@@ -42,3 +42,4 @@ public class CreateDiscussionRequest {
         this.idTecnologia = idTecnologia;
     }
 }
+

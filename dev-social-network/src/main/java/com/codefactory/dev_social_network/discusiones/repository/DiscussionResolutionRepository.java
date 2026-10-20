@@ -12,18 +12,18 @@ import java.util.UUID;
 
 public interface DiscussionResolutionRepository extends Repository<Discussion, UUID> {
 
-    @Modifying(flushAutomatically = true, clearAutomatically = true)
-    @Query("""
-            update Discussion d
-               set d.estado = :newStatus,
-                   d.ultimaActualizacion = :updatedAt
-             where d.id = :id
-               and d.estado = :currentStatus
-            """)
-    int updateStatus(
-            @Param("id") UUID id,
-            @Param("currentStatus") DiscussionStatus currentStatus,
-            @Param("newStatus") DiscussionStatus newStatus,
-            @Param("updatedAt") OffsetDateTime updatedAt
-    );
+        @Modifying(flushAutomatically = true, clearAutomatically = true)
+        @Query("""
+                update Discussion d
+                        set d.estado = :newStatus,
+                        d.ultimaActualizacion = :updatedAt
+                        where d.id = :id
+                        and d.estado = :currentStatus
+                """)
+        int updateStatus(
+                @Param("id") UUID id,
+                @Param("currentStatus") DiscussionStatus currentStatus,
+                @Param("newStatus") DiscussionStatus newStatus,
+                @Param("updatedAt") OffsetDateTime updatedAt
+        );
 }

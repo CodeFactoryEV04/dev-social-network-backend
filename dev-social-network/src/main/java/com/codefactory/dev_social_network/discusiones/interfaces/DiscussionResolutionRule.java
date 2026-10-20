@@ -8,3 +8,4 @@ public interface DiscussionResolutionRule {
 
     void validate(Discussion discussion, UUID autorId);
 }
+

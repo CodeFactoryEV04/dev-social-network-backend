@@ -29,6 +29,7 @@ public class DiscussionService {
 
     @Transactional
     public DiscussionResponse createDiscussion(UUID autorId, CreateDiscussionRequest request) {
+
         TecnologiaRef tecnologia = tecnologiaRefRepository.findById(request.getIdTecnologia())
                 .orElseThrow(() -> new BusinessException(
                         "TECNOLOGIA_INVALIDA",
@@ -49,6 +50,7 @@ public class DiscussionService {
     }
 
     private DiscussionResponse mapToResponse(Discussion discussion, TecnologiaRef tecnologia) {
+
         DiscussionResponse response = new DiscussionResponse();
         response.setId(discussion.getId());
         response.setAutorId(discussion.getAutorId());
@@ -57,6 +59,7 @@ public class DiscussionService {
         response.setContenido(discussion.getContenido());
         response.setEstado(discussion.getEstado());
         response.setFechaCreacion(discussion.getFechaCreacion());
+
         return response;
     }
 }

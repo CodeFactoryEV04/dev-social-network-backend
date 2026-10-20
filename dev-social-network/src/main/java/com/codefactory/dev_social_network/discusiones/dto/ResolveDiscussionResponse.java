@@ -6,3 +6,4 @@ import java.util.UUID;
 
 public record ResolveDiscussionResponse(UUID id, DiscussionStatus status, String message) {
 }
+
