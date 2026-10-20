@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import java.util.UUID;
 
+import com.codefactory.dev_social_network.usuarios.dto.RegistrationData;
 import com.codefactory.dev_social_network.usuarios.dto.RegistroUsuarioRequest;
 import com.codefactory.dev_social_network.usuarios.dto.RegistroUsuarioResponse;
 import com.codefactory.dev_social_network.usuarios.interfaces.RegistrarUsuarioUseCase;
@@ -25,12 +26,12 @@ public class UsuarioController {
 
     @PostMapping
     public ResponseEntity<RegistroUsuarioResponse> registrar(@Valid @RequestBody RegistroUsuarioRequest request) {
-        UUID id = registrarUsuarioUseCase.registrar(
-            request.email(),
-            request.nombre(),
-            request.apellido(),
-            request.contrasena()
-        );
+        UUID id = registrarUsuarioUseCase.registrar(new RegistrationData(
+                request.username(),
+                request.email(),
+                request.nombre(),
+                request.apellido(),
+                request.contrasena()));
         RegistroUsuarioResponse response = new RegistroUsuarioResponse(id, "Cuenta creada exitosamente");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
