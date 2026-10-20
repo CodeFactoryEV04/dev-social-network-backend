@@ -8,6 +8,8 @@ import com.codefactory.dev_social_network.shared.exception.DiscusionNoEncontrada
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 public class GetDiscussionUseCaseImpl implements GetDiscussionUseCase {
 
@@ -19,16 +21,15 @@ public class GetDiscussionUseCaseImpl implements GetDiscussionUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public DiscussionDetailResponse getById(Long discussionId) {
-
+    public DiscussionDetailResponse getById(UUID discussionId) {
         Discussion discussion = discussionFinderPort.findById(discussionId)
                 .orElseThrow(DiscusionNoEncontradaException::new);
 
         return new DiscussionDetailResponse(
                 discussion.getId(),
-                discussion.getTitle(),
-                discussion.getStatus(),
-                discussion.getUserId()
+                discussion.getTitulo(),
+                discussion.getEstado(),
+                discussion.getAutorId()
         );
     }
 }

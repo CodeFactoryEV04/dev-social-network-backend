@@ -3,9 +3,9 @@ package com.codefactory.dev_social_network.discusiones.service;
 import com.codefactory.dev_social_network.discusiones.dto.CreateDiscussionRequest;
 import com.codefactory.dev_social_network.discusiones.dto.DiscussionResponse;
 import com.codefactory.dev_social_network.discusiones.entity.Discussion;
+import com.codefactory.dev_social_network.discusiones.entity.TecnologiaRef;
 import com.codefactory.dev_social_network.discusiones.repository.DiscussionRepository;
-import com.codefactory.dev_social_network.proyectos.entity.Technology;
-import com.codefactory.dev_social_network.proyectos.repository.TechnologyRepository;
+import com.codefactory.dev_social_network.discusiones.repository.TecnologiaRefRepository;
 import com.codefactory.dev_social_network.shared.exception.BusinessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -17,49 +17,49 @@ import java.util.UUID;
 public class DiscussionService {
 
     private final DiscussionRepository discussionRepository;
-    private final TechnologyRepository technologyRepository;
+    private final TecnologiaRefRepository tecnologiaRefRepository;
 
     public DiscussionService(
             DiscussionRepository discussionRepository,
-            TechnologyRepository technologyRepository
+            TecnologiaRefRepository tecnologiaRefRepository
     ) {
         this.discussionRepository = discussionRepository;
-        this.technologyRepository = technologyRepository;
+        this.tecnologiaRefRepository = tecnologiaRefRepository;
     }
 
     @Transactional
-    public DiscussionResponse createDiscussion(UUID userId, CreateDiscussionRequest request) {
+    public DiscussionResponse createDiscussion(UUID autorId, CreateDiscussionRequest request) {
 
-        Technology technology = technologyRepository.findById(request.getTechnologyId())
+        TecnologiaRef tecnologia = tecnologiaRefRepository.findById(request.getIdTecnologia())
                 .orElseThrow(() -> new BusinessException(
-                        "INVALID_TECHNOLOGY",
-                        "Technology does not exist",
+                        "TECNOLOGIA_INVALIDA",
+                        "La tecnologia indicada no existe",
                         HttpStatus.BAD_REQUEST
                 ));
 
         Discussion discussion = new Discussion(
-                userId,
-                technology.getId(),
-                request.getTitle(),
-                request.getContent()
+                autorId,
+                tecnologia.getId(),
+                request.getTitulo(),
+                request.getContenido()
         );
 
-        Discussion savedDiscussion = discussionRepository.save(discussion);
+        Discussion discusionGuardada = discussionRepository.save(discussion);
 
-        return mapToResponse(savedDiscussion, technology);
+        return mapToResponse(discusionGuardada, tecnologia);
     }
 
-    private DiscussionResponse mapToResponse(Discussion discussion, Technology technology) {
+    private DiscussionResponse mapToResponse(Discussion discussion, TecnologiaRef tecnologia) {
 
         DiscussionResponse response = new DiscussionResponse();
 
         response.setId(discussion.getId());
-        response.setUserId(discussion.getUserId());
-        response.setTechnology(technology.getName());
-        response.setTitle(discussion.getTitle());
-        response.setContent(discussion.getContent());
-        response.setStatus(discussion.getStatus());
-        response.setCreatedAt(discussion.getCreatedAt());
+        response.setAutorId(discussion.getAutorId());
+        response.setTecnologia(tecnologia.getNombreTecnologia());
+        response.setTitulo(discussion.getTitulo());
+        response.setContenido(discussion.getContenido());
+        response.setEstado(discussion.getEstado());
+        response.setFechaCreacion(discussion.getFechaCreacion());
 
         return response;
     }

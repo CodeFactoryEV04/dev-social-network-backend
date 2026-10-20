@@ -6,5 +6,6 @@ import java.util.UUID;
 
 public interface ResolveDiscussionUseCase {
 
-    ResolveDiscussionResponse resolve(UUID userId, Long discussionId);
+    ResolveDiscussionResponse resolve(UUID autorId, UUID discussionId);
 }
+
