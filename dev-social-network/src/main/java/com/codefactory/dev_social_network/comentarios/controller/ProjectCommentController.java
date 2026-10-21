@@ -1,6 +1,7 @@
 package com.codefactory.dev_social_network.comentarios.controller;
  
 import com.codefactory.dev_social_network.comentarios.dto.CommentResponse;
+import com.codefactory.dev_social_network.comentarios.dto.PublishedCommentResponse;
 import com.codefactory.dev_social_network.comentarios.dto.CreateCommentRequest;
 import com.codefactory.dev_social_network.comentarios.service.ProjectCommentService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,7 +43,7 @@ public class ProjectCommentController {
                     description = "Comment created successfully",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = CommentResponse.class)
+                            schema = @Schema(implementation = PublishedCommentResponse.class)
                     )
             ),
             @ApiResponse(responseCode = "400", description = "Invalid request data"),
@@ -50,12 +51,12 @@ public class ProjectCommentController {
             @ApiResponse(responseCode = "404", description = "Project not found")
     })
     @PostMapping
-    public ResponseEntity<CommentResponse> createComment(
+    public ResponseEntity<PublishedCommentResponse> createComment(
             @AuthenticationPrincipal UUID idUsuario,
             @PathVariable UUID projectId,
             @Valid @RequestBody CreateCommentRequest request
     ) {
-        CommentResponse response = projectCommentService.createComment(idUsuario, projectId, request);
+        PublishedCommentResponse response = projectCommentService.createComment(idUsuario, projectId, request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
