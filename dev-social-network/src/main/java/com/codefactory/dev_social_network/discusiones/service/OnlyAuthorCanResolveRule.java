@@ -13,8 +13,8 @@ import java.util.UUID;
 public class OnlyAuthorCanResolveRule implements DiscussionResolutionRule {
 
     @Override
-    public void validate(Discussion discussion, UUID userId) {
-        if (!discussion.getUserId().equals(userId)) {
+    public void validate(Discussion discussion, UUID autorId) {
+        if (!discussion.getAutorId().equals(autorId)) {
             throw new SoloAutorPuedeResolverException();
         }
     }
