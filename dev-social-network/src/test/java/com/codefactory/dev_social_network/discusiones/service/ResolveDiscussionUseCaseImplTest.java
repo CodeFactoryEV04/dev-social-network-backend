@@ -149,4 +149,15 @@ public class ResolveDiscussionUseCaseImplTest {
   }
 
 
+  @Test
+  void discussionCanNotBeResolved() {
+    buildTestObjects();
+
+    when(discussionFinderPort.findById(discussion.getId())).thenReturn(Optional.of(discussion));
+    rules.forEach(rule -> doNothing().when(rule).validate(discussion, userId));
+    when(discussionResolverPort.markAsResolved(discussion.getId())).thenReturn(false);
+
+    assertThrows(DiscusionYaResueltaException.class, () -> useCase.resolve(userId, discussion.getId()));
+  }
+
 }
