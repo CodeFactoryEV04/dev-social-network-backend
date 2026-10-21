@@ -23,6 +23,11 @@ public class UsuarioRepositoryAdapter implements UsuarioRepositoryPort {
     }
 
     @Override
+    public boolean existePorUsername(String username) {
+        return jpaRepository.existsByUsername(username);
+    }
+
+    @Override
     public Usuario guardar(Usuario usuario) {
         return jpaRepository.save(usuario);
     }

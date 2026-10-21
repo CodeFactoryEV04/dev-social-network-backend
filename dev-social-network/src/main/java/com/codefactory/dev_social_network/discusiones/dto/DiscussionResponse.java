@@ -7,67 +7,68 @@ import java.util.UUID;
 
 public class DiscussionResponse {
 
-    private Long id;
-    private UUID userId;
-    private String technology;
-    private String title;
-    private String content;
-    private DiscussionStatus status;
-    private OffsetDateTime createdAt;
+    private UUID id;
+    private UUID autorId;
+    private String tecnologia;
+    private String titulo;
+    private String contenido;
+    private DiscussionStatus estado;
+    private OffsetDateTime fechaCreacion;
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
-    public UUID getUserId() {
-        return userId;
+    public UUID getAutorId() {
+        return autorId;
     }
 
-    public void setUserId(UUID userId) {
-        this.userId = userId;
+    public void setAutorId(UUID autorId) {
+        this.autorId = autorId;
     }
 
-    public String getTechnology() {
-        return technology;
+    public String getTecnologia() {
+        return tecnologia;
     }
 
-    public void setTechnology(String technology) {
-        this.technology = technology;
+    public void setTecnologia(String tecnologia) {
+        this.tecnologia = tecnologia;
     }
 
-    public String getTitle() {
-        return title;
+    public String getTitulo() {
+        return titulo;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setTitulo(String titulo) {
+        this.titulo = titulo;
     }
 
-    public String getContent() {
-        return content;
+    public String getContenido() {
+        return contenido;
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    public void setContenido(String contenido) {
+        this.contenido = contenido;
     }
 
-    public DiscussionStatus getStatus() {
-        return status;
+    public DiscussionStatus getEstado() {
+        return estado;
     }
 
-    public void setStatus(DiscussionStatus status) {
-        this.status = status;
+    public void setEstado(DiscussionStatus estado) {
+        this.estado = estado;
     }
 
-    public OffsetDateTime getCreatedAt() {
-        return createdAt;
+    public OffsetDateTime getFechaCreacion() {
+        return fechaCreacion;
     }
 
-    public void setCreatedAt(OffsetDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setFechaCreacion(OffsetDateTime fechaCreacion) {
+        this.fechaCreacion = fechaCreacion;
     }
 }
+
