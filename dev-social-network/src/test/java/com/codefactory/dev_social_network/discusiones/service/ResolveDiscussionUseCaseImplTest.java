@@ -6,6 +6,9 @@ import com.codefactory.dev_social_network.discusiones.entity.DiscussionStatus;
 import com.codefactory.dev_social_network.discusiones.interfaces.DiscussionFinderPort;
 import com.codefactory.dev_social_network.discusiones.interfaces.DiscussionResolutionRule;
 import com.codefactory.dev_social_network.discusiones.interfaces.DiscussionResolverPort;
+import com.codefactory.dev_social_network.shared.exception.DiscusionNoEncontradaException;
+import com.codefactory.dev_social_network.shared.exception.DiscusionYaResueltaException;
+import com.codefactory.dev_social_network.shared.exception.SoloAutorPuedeResolverException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +21,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -96,6 +100,52 @@ public class ResolveDiscussionUseCaseImplTest {
     verify(discussionResolverPort).markAsResolved(this.discussion.getId()); // verify discussion was actually resolved
 
     assertEquals(this.resolveDiscussionResponse, actual);
+  }
+
+  @Test
+  void markAlreadyResolvedDiscussionAsResolved() {
+    buildTestObjects();
+
+    var resolvedDiscussion = this.discussion;
+    resolvedDiscussion.setStatus(DiscussionStatus.RESOLVED);
+
+    when(discussionFinderPort.findById(resolvedDiscussion.getId()))
+        .thenReturn(Optional.of(resolvedDiscussion));
+
+
+    assertThrows(DiscusionYaResueltaException.class,
+        () -> useCase.resolve(userId, resolvedDiscussion.getId()));
+
+    verify(discussionResolverPort, never()).markAsResolved(any());
+  }
+
+  @Test
+  void markAsResolvedDiscussionFromOtherUser() {
+    buildTestObjects();
+    var wrongUserId = UUID.randomUUID();
+
+    when(discussionFinderPort.findById(discussion.getId()))
+        .thenReturn(Optional.of(discussion));
+
+
+    assertThrows(SoloAutorPuedeResolverException.class,
+        () -> useCase.resolve(wrongUserId, discussion.getId()));
+
+    verify(discussionResolverPort, never()).markAsResolved(any());
+  }
+
+  @Test
+  void markAsResolvedNonExistentDiscussion() {
+    buildTestObjects();
+
+    when(discussionFinderPort.findById(any()))
+        .thenReturn(Optional.empty());
+
+    assertThrows(DiscusionNoEncontradaException.class,
+        () -> useCase.resolve(UUID.randomUUID(), 1L));
+
+    verify(discussionResolverPort, never()).markAsResolved(any());
+    rules.forEach(rule -> verify(rule, never()).validate(any(), any()));
   }
 
 
