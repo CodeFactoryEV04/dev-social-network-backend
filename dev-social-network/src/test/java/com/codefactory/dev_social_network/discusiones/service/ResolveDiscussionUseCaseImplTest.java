@@ -6,22 +6,24 @@ import com.codefactory.dev_social_network.discusiones.entity.DiscussionStatus;
 import com.codefactory.dev_social_network.discusiones.interfaces.DiscussionFinderPort;
 import com.codefactory.dev_social_network.discusiones.interfaces.DiscussionResolutionRule;
 import com.codefactory.dev_social_network.discusiones.interfaces.DiscussionResolverPort;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 
+@Slf4j
 public class ResolveDiscussionUseCaseImplTest {
-
-  @InjectMocks
-  private ResolveDiscussionUseCaseImpl useCase;
 
   @Mock
   private DiscussionFinderPort discussionFinderPort;
@@ -30,16 +32,37 @@ public class ResolveDiscussionUseCaseImplTest {
   private DiscussionResolverPort discussionResolverPort;
 
   @Spy
-  private List<DiscussionResolutionRule> rules = List.of(
-      new OnlyAuthorCanResolveRule(),
-      new DiscussionNotAlreadyResolvedRule()
-  );
+  private OnlyAuthorCanResolveRule onlyAuthorCanResolveRule = new OnlyAuthorCanResolveRule();
+
+  @Spy
+  private DiscussionNotAlreadyResolvedRule discussionNotAlreadyResolvedRule = new DiscussionNotAlreadyResolvedRule();
+
+  private ResolveDiscussionUseCaseImpl useCase;
+
+  private List<DiscussionResolutionRule> rules;
+
+  @BeforeEach
+  void setUp() {
+    MockitoAnnotations.openMocks(this);
+
+    // Build the rules list AFTER openMocks, so it holds the spy instances (the fields
+    // only contain spies once openMocks has replaced them), and wire the use case manually.
+    this.rules = List.of(
+        onlyAuthorCanResolveRule,
+        discussionNotAlreadyResolvedRule
+    );
+    this.useCase = new ResolveDiscussionUseCaseImpl(
+        discussionFinderPort,
+        discussionResolverPort,
+        this.rules
+    );
+  }
 
   private UUID userId;
 
   private Discussion discussion;
 
-  private ResolveDiscussionResponse response;
+  private ResolveDiscussionResponse resolveDiscussionResponse;
 
 
   void buildTestObjects() {
@@ -49,7 +72,7 @@ public class ResolveDiscussionUseCaseImplTest {
   }
 
   void buildSuccessResponse() {
-    this.response = new ResolveDiscussionResponse(
+    this.resolveDiscussionResponse = new ResolveDiscussionResponse(
         discussion.getId(),
         DiscussionStatus.RESOLVED,
         "La discusión ha sido marcada como resuelta"
@@ -57,18 +80,22 @@ public class ResolveDiscussionUseCaseImplTest {
   }
 
   @Test
-  void MarkDiscussionAsResolvedSuccessFully() {
+  void MarkDiscussionAsResolvedSuccessfully() {
     buildTestObjects();
     buildSuccessResponse();
+
+    when(discussionFinderPort.findById(this.discussion.getId())).thenReturn(Optional.of(discussion));
+    when(discussionResolverPort.markAsResolved(this.discussion.getId())).thenReturn(true);
+
     var actual = useCase.resolve(userId, discussion.getId());
 
     this.rules.forEach((rule) ->
-        verify(rule).validate(this.discussion, this.userId) // verify all rules was checked
+        verify(rule, times(1)).validate(this.discussion, this.userId) // verify all rules was checked
     );
 
     verify(discussionResolverPort).markAsResolved(this.discussion.getId()); // verify discussion was actually resolved
 
-    assertEquals(actual, this.response);
+    assertEquals(this.resolveDiscussionResponse, actual);
   }
 
 
