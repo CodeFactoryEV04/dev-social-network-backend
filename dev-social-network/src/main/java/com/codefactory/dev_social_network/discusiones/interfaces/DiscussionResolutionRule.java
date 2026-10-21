@@ -6,5 +6,6 @@ import java.util.UUID;
 
 public interface DiscussionResolutionRule {
 
-    void validate(Discussion discussion, UUID userId);
+    void validate(Discussion discussion, UUID autorId);
 }
+

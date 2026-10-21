@@ -44,21 +44,15 @@ public class DiscussionController {
                             schema = @Schema(implementation = DiscussionResponse.class)
                     )
             ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Invalid request data"
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Authentication required"
-            )
+            @ApiResponse(responseCode = "400", description = "Invalid request data"),
+            @ApiResponse(responseCode = "401", description = "Authentication required")
     })
     @PostMapping
     public ResponseEntity<DiscussionResponse> createDiscussion(
-            @AuthenticationPrincipal UUID userId,
+            @AuthenticationPrincipal UUID autorId,
             @Valid @RequestBody CreateDiscussionRequest request
     ) {
-        DiscussionResponse response = discussionService.createDiscussion(userId, request);
+        DiscussionResponse response = discussionService.createDiscussion(autorId, request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
