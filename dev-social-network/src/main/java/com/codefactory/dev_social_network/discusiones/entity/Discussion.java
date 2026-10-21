@@ -79,4 +79,25 @@ public class Discussion {
     public OffsetDateTime getUltimaActualizacion() {
         return ultimaActualizacion;
     }
+
+    public void setStatus(DiscussionStatus status) {
+        this.status = status;
+    }
+
+    @Override
+    public String toString() {
+        String contentPreview = content != null && content.length() > 50
+                ? content.substring(0, 50) + "..."
+                : content;
+        return "Discussion{" +
+                "id=" + id +
+                ", userId=" + userId +
+                ", technologyId=" + technologyId +
+                ", title='" + title + '\'' +
+                ", content='" + contentPreview + '\'' +
+                ", status=" + status +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
+    }
 }

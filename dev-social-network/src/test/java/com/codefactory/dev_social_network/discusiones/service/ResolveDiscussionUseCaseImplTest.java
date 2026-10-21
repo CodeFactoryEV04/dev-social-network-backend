@@ -6,105 +6,158 @@ import com.codefactory.dev_social_network.discusiones.entity.DiscussionStatus;
 import com.codefactory.dev_social_network.discusiones.interfaces.DiscussionFinderPort;
 import com.codefactory.dev_social_network.discusiones.interfaces.DiscussionResolutionRule;
 import com.codefactory.dev_social_network.discusiones.interfaces.DiscussionResolverPort;
-import com.codefactory.dev_social_network.shared.exception.BusinessException;
+import com.codefactory.dev_social_network.shared.exception.DiscusionNoEncontradaException;
+import com.codefactory.dev_social_network.shared.exception.DiscusionYaResueltaException;
+import com.codefactory.dev_social_network.shared.exception.SoloAutorPuedeResolverException;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-class ResolveDiscussionUseCaseImplTest {
 
-    @Mock
-    private DiscussionFinderPort discussionFinderPort;
+@Slf4j
+public class ResolveDiscussionUseCaseImplTest {
 
-    @Mock
-    private DiscussionResolverPort discussionResolverPort;
+  @Mock
+  private DiscussionFinderPort discussionFinderPort;
 
-    private ResolveDiscussionUseCaseImpl useCase;
+  @Mock
+  private DiscussionResolverPort discussionResolverPort;
 
-    @BeforeEach
-    void setUp() {
-        List<DiscussionResolutionRule> rules = List.of(
-                new OnlyAuthorCanResolveRule(),
-                new DiscussionNotAlreadyResolvedRule()
-        );
-        useCase = new ResolveDiscussionUseCaseImpl(discussionFinderPort, discussionResolverPort, rules);
-    }
+  @Spy
+  private OnlyAuthorCanResolveRule onlyAuthorCanResolveRule = new OnlyAuthorCanResolveRule();
 
-    @Test
-    void deberiaMarcarComoResueltaCuandoElAutorLaResuelveYEstaAbierta() throws Exception {
-        UUID autorId = UUID.randomUUID();
-        UUID discussionId = UUID.randomUUID();
-        Discussion discussion = construirDiscusion(autorId, DiscussionStatus.ABIERTA);
+  @Spy
+  private DiscussionNotAlreadyResolvedRule discussionNotAlreadyResolvedRule = new DiscussionNotAlreadyResolvedRule();
 
-        when(discussionFinderPort.findById(discussionId)).thenReturn(Optional.of(discussion));
-        when(discussionResolverPort.markAsResolved(discussionId)).thenReturn(true);
+  private ResolveDiscussionUseCaseImpl useCase;
 
-        ResolveDiscussionResponse response = useCase.resolve(autorId, discussionId);
+  private List<DiscussionResolutionRule> rules;
 
-        assertThat(response.status()).isEqualTo(DiscussionStatus.RESUELTA);
-        assertThat(response.message()).isEqualTo("La discusión ha sido marcada como resuelta");
-    }
+  @BeforeEach
+  void setUp() {
+    MockitoAnnotations.openMocks(this);
 
-    @Test
-    void deberiaLanzarExcepcionCuandoLaDiscusionYaEstaResuelta() throws Exception {
-        UUID autorId = UUID.randomUUID();
-        UUID discussionId = UUID.randomUUID();
-        Discussion discussion = construirDiscusion(autorId, DiscussionStatus.RESUELTA);
+    // Build the rules list AFTER openMocks, so it holds the spy instances (the fields
+    // only contain spies once openMocks has replaced them), and wire the use case manually.
+    this.rules = List.of(
+        onlyAuthorCanResolveRule,
+        discussionNotAlreadyResolvedRule
+    );
+    this.useCase = new ResolveDiscussionUseCaseImpl(
+        discussionFinderPort,
+        discussionResolverPort,
+        this.rules
+    );
+  }
 
-        when(discussionFinderPort.findById(discussionId)).thenReturn(Optional.of(discussion));
+  private UUID userId;
 
-        assertThatThrownBy(() -> useCase.resolve(autorId, discussionId))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage("Está discusión ya ha sido resuelta");
+  private Discussion discussion;
 
-        verify(discussionResolverPort, never()).markAsResolved(any());
-    }
+  private ResolveDiscussionResponse resolveDiscussionResponse;
 
-    @Test
-    void deberiaLanzarExcepcionCuandoQuienResuelveNoEsElAutor() throws Exception {
-        UUID autorId = UUID.randomUUID();
-        UUID otroUsuarioId = UUID.randomUUID();
-        UUID discussionId = UUID.randomUUID();
-        Discussion discussion = construirDiscusion(autorId, DiscussionStatus.ABIERTA);
 
-        when(discussionFinderPort.findById(discussionId)).thenReturn(Optional.of(discussion));
+  void buildTestObjects() {
+    this.userId = UUID.randomUUID();
+    this.discussion = new Discussion(userId,
+        3L, "Test Title", "Test Content");
+  }
 
-        assertThatThrownBy(() -> useCase.resolve(otroUsuarioId, discussionId))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage("Solo el autor puede marcar como resuelta la discusión");
+  void buildSuccessResponse() {
+    this.resolveDiscussionResponse = new ResolveDiscussionResponse(
+        discussion.getId(),
+        DiscussionStatus.RESOLVED,
+        "La discusión ha sido marcada como resuelta"
+    );
+  }
 
-        verify(discussionResolverPort, never()).markAsResolved(any());
-    }
+  @Test
+  void MarkDiscussionAsResolvedSuccessfully() {
+    buildTestObjects();
+    buildSuccessResponse();
 
-    @Test
-    void deberiaLanzarExcepcionCuandoLaDiscusionNoExiste() {
-        UUID autorId = UUID.randomUUID();
-        UUID discussionId = UUID.randomUUID();
+    when(discussionFinderPort.findById(this.discussion.getId())).thenReturn(Optional.of(discussion));
+    when(discussionResolverPort.markAsResolved(this.discussion.getId())).thenReturn(true);
 
-        when(discussionFinderPort.findById(discussionId)).thenReturn(Optional.empty());
+    var actual = useCase.resolve(userId, discussion.getId());
 
-        assertThatThrownBy(() -> useCase.resolve(autorId, discussionId))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage("Está discusión no existe");
-    }
+    this.rules.forEach((rule) ->
+        verify(rule, times(1)).validate(this.discussion, this.userId) // verify all rules was checked
+    );
 
-    private Discussion construirDiscusion(UUID autorId, DiscussionStatus estado) throws Exception {
-        Discussion discussion = new Discussion(autorId, UUID.randomUUID(), "Titulo", "Contenido de prueba");
-        Field estadoField = Discussion.class.getDeclaredField("estado");
-        estadoField.setAccessible(true);
-        estadoField.set(discussion, estado);
-        return discussion;
-    }
+    verify(discussionResolverPort).markAsResolved(this.discussion.getId()); // verify discussion was actually resolved
+
+    assertEquals(this.resolveDiscussionResponse, actual);
+  }
+
+  @Test
+  void markAlreadyResolvedDiscussionAsResolved() {
+    buildTestObjects();
+
+    var resolvedDiscussion = this.discussion;
+    resolvedDiscussion.setStatus(DiscussionStatus.RESOLVED);
+
+    when(discussionFinderPort.findById(resolvedDiscussion.getId()))
+        .thenReturn(Optional.of(resolvedDiscussion));
+
+
+    assertThrows(DiscusionYaResueltaException.class,
+        () -> useCase.resolve(userId, resolvedDiscussion.getId()));
+
+    verify(discussionResolverPort, never()).markAsResolved(any());
+  }
+
+  @Test
+  void markAsResolvedDiscussionFromOtherUser() {
+    buildTestObjects();
+    var wrongUserId = UUID.randomUUID();
+
+    when(discussionFinderPort.findById(discussion.getId()))
+        .thenReturn(Optional.of(discussion));
+
+
+    assertThrows(SoloAutorPuedeResolverException.class,
+        () -> useCase.resolve(wrongUserId, discussion.getId()));
+
+    verify(discussionResolverPort, never()).markAsResolved(any());
+  }
+
+  @Test
+  void markAsResolvedNonExistentDiscussion() {
+    buildTestObjects();
+
+    when(discussionFinderPort.findById(any()))
+        .thenReturn(Optional.empty());
+
+    assertThrows(DiscusionNoEncontradaException.class,
+        () -> useCase.resolve(UUID.randomUUID(), 1L));
+
+    verify(discussionResolverPort, never()).markAsResolved(any());
+    rules.forEach(rule -> verify(rule, never()).validate(any(), any()));
+  }
+
+
+  @Test
+  void discussionCanNotBeResolved() {
+    buildTestObjects();
+
+    when(discussionFinderPort.findById(discussion.getId())).thenReturn(Optional.of(discussion));
+    rules.forEach(rule -> doNothing().when(rule).validate(discussion, userId));
+    when(discussionResolverPort.markAsResolved(discussion.getId())).thenReturn(false);
+
+    assertThrows(DiscusionYaResueltaException.class, () -> useCase.resolve(userId, discussion.getId()));
+  }
+
 }
