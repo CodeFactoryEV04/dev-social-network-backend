@@ -36,3 +36,40 @@ build/
 .env
 .env.*
 !.env.example
+!.env.*.example
+
+### Sistema operativo ###
+.DS_Store
+Thumbs.db
+desktop.ini
+
+### Logs y errores de la JVM ###
+*.log
+hs_err_pid*.log
+replay_pid*.log
+
+### Restos de merge, backups y archivos temporales ###
+*.orig
+*.rej
+*.bak
+*~
+
+### Overrides locales (no se versionan) ###
+# Configuración de Spring propia de una máquina. El archivo committed
+# application.properties no debe verse afectado.
+application-local.properties
+application-*.local.properties
+# Override local de Docker Compose (variantes de compose.override.yaml)
+compose.override.yaml
+compose.override.yml
+
+### SonarQube / SonarCloud ###
+# Caché de trabajo del SonarScanner (clases ya indexadas)
+.scannerwork/
+# Token y host local de Sonar: es una credencial, nunca se versiona.
+# Pásalos con -Dsonar.token=... o ponlos en sonar-project-local.properties.
+sonar-project-local.properties
+sonar-project-local.yml
+# Reportes de cobertura generados dentro de target/
+target/site/jacoco/
+target/jacoco.exec
