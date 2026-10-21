@@ -55,8 +55,8 @@ class DiscussionResolutionControllerTest {
   void setUp() {
     this.userId = UUID.randomUUID();
     this.response = new ResolveDiscussionResponse(
-        1L,
-        DiscussionStatus.RESOLVED,
+        UUID.randomUUID(),
+        DiscussionStatus.RESUELTA,
         "Mocked message"
     );
 
@@ -72,7 +72,7 @@ class DiscussionResolutionControllerTest {
     mockMvc.perform(patch("/api/v1/discussions/{id}/resolve", response.id())
             .header("Authorization", "Bearer " + TOKEN))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(response.id()))
+        .andExpect(jsonPath("$.id", is(response.id().toString())))
         .andExpect(jsonPath("$.status", is(response.status().name())))
         .andExpect(jsonPath("$.message", is(response.message())));
   }

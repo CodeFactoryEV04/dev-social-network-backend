@@ -40,7 +40,7 @@ public class RegistrarUsuarioUseCaseImpl implements RegistrarUsuarioUseCase {
         }
 
         UUID userId = userRegistrationPort.registrar(
-                data.username(), data.nombre(), data.apellido(), data.email());
+            data.username(), data.nombre(), data.apellido(), data.email());
 
         credencialService.crearCredencialLocal(userId, passwordHasher.hashear(data.contrasena()));
 

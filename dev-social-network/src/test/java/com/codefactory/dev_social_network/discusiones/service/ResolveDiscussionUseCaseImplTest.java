@@ -72,13 +72,13 @@ public class ResolveDiscussionUseCaseImplTest {
   void buildTestObjects() {
     this.userId = UUID.randomUUID();
     this.discussion = new Discussion(userId,
-        3L, "Test Title", "Test Content");
+        UUID.randomUUID(), "Test Title", "Test Content");
   }
 
   void buildSuccessResponse() {
     this.resolveDiscussionResponse = new ResolveDiscussionResponse(
         discussion.getId(),
-        DiscussionStatus.RESOLVED,
+        DiscussionStatus.RESUELTA,
         "La discusión ha sido marcada como resuelta"
     );
   }
@@ -107,7 +107,7 @@ public class ResolveDiscussionUseCaseImplTest {
     buildTestObjects();
 
     var resolvedDiscussion = this.discussion;
-    resolvedDiscussion.setStatus(DiscussionStatus.RESOLVED);
+    resolvedDiscussion.setStatus(DiscussionStatus.RESUELTA);
 
     when(discussionFinderPort.findById(resolvedDiscussion.getId()))
         .thenReturn(Optional.of(resolvedDiscussion));
@@ -142,7 +142,7 @@ public class ResolveDiscussionUseCaseImplTest {
         .thenReturn(Optional.empty());
 
     assertThrows(DiscusionNoEncontradaException.class,
-        () -> useCase.resolve(UUID.randomUUID(), 1L));
+        () -> useCase.resolve(userId, discussion.getId()));
 
     verify(discussionResolverPort, never()).markAsResolved(any());
     rules.forEach(rule -> verify(rule, never()).validate(any(), any()));
