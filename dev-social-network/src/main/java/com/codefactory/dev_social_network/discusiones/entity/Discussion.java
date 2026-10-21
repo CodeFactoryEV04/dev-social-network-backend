@@ -81,6 +81,10 @@ public class Discussion {
         return updatedAt;
     }
 
+    public void setStatus(DiscussionStatus status) {
+        this.status = status;
+    }
+
     @Override
     public String toString() {
         String contentPreview = content != null && content.length() > 50
