@@ -9,6 +9,7 @@ import com.codefactory.dev_social_network.shared.config.SecurityConfig;
 import com.codefactory.dev_social_network.shared.exception.ConversationAccessDeniedException;
 import com.codefactory.dev_social_network.shared.exception.ConversationNotFoundException;
 import com.codefactory.dev_social_network.shared.exception.RecipientNotFoundException;
+import com.codefactory.dev_social_network.shared.exception.SelfMessageException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -143,6 +144,53 @@ class MessageControllerTest {
             .andExpect(jsonPath("$.details[0].message", is("El mensaje no puede estar vacío")));
 
         verify(messageService, never()).sendMessage(any(), any());
+    }
+
+    @Test
+    void sendMessageWithEmptyContentIsBadRequest() throws Exception {
+        mockMvc.perform(post("/api/v1/messages")
+                .header("Authorization", "Bearer " + TOKEN)
+                .contentType("application/json")
+                .content(jsonBody("destino@mail.com", "")))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.errorCode", is("VALIDATION_ERROR")))
+            .andExpect(jsonPath("$.details[0].field", is("content")))
+            .andExpect(jsonPath("$.details[0].message", is("El mensaje no puede estar vacío")));
+
+        verify(messageService, never()).sendMessage(any(), any());
+    }
+
+    @Test
+    void sendMessageWithExactly2000CharactersIsCreated() throws Exception {
+        String content = "x".repeat(2000);
+        MessageResponse response = new MessageResponse(
+                messageResponse.id(), conversationId, userId, content, NOW);
+
+        when(authenticatedUser.currentUserId()).thenReturn(userId);
+        when(messageService.sendMessage(eq(userId), any())).thenReturn(response);
+
+        mockMvc.perform(post("/api/v1/messages")
+                .header("Authorization", "Bearer " + TOKEN)
+                .contentType("application/json")
+                .content(jsonBody("destino@mail.com", content)))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.content", is(content)));
+
+        verify(messageService).sendMessage(eq(userId), any());
+    }
+
+    @Test
+    void sendMessageToSelfIsBadRequest() throws Exception {
+        when(authenticatedUser.currentUserId()).thenReturn(userId);
+        when(messageService.sendMessage(eq(userId), any())).thenThrow(new SelfMessageException());
+
+        mockMvc.perform(post("/api/v1/messages")
+                .header("Authorization", "Bearer " + TOKEN)
+                .contentType("application/json")
+                .content(jsonBody("luis@mail.com", "Nota personal")))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.errorCode", is("SELF_MESSAGE_NOT_ALLOWED")))
+            .andExpect(jsonPath("$.message", is("No puedes enviarte un mensaje a ti mismo")));
     }
 
     @Test

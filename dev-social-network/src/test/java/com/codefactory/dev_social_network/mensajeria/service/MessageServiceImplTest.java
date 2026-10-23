@@ -32,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -216,6 +217,50 @@ class MessageServiceImplTest {
         service.sendMessage(senderId, request);
 
         verify(conversationResolver).resolve(eq(senderId), eq(receiverId));
+    }
+
+    @Test
+    void deberiaReutilizarLaMismaConversacionEnMensajesSucesivos() {
+        SendMessageRequest primero = new SendMessageRequest("destino@mail.com", "Hola");
+        SendMessageRequest segundo = new SendMessageRequest("destino@mail.com", "¿Tienes tiempo esta semana?");
+
+        // Resolver real: la primera llamada crea la conversación y la segunda debe reutilizarla.
+        MessageServiceImpl serviceConResolverReal = new MessageServiceImpl(
+                usuarioQueryService,
+                new ConversationResolver(conversationRepository, FIXED_CLOCK),
+                conversationRepository,
+                messageRepository,
+                new MessageMapper(),
+                FIXED_CLOCK
+        );
+
+        when(usuarioQueryService.buscarPorEmail("destino@mail.com"))
+                .thenReturn(Optional.of(new UsuarioDTO(receiverId, "destino@mail.com")));
+        when(conversationRepository.findByParticipantOneIdAndParticipantTwoId(any(), any()))
+                .thenReturn(Optional.empty())
+                .thenReturn(Optional.of(conversation));
+        when(conversationRepository.save(any(ConversationEntity.class))).thenReturn(conversation);
+        when(messageRepository.save(any(MessageEntity.class))).thenAnswer(invocation -> {
+            MessageEntity saved = invocation.getArgument(0);
+            setId(saved, messageId);
+            return saved;
+        });
+
+        MessageResponse primeraRespuesta = serviceConResolverReal.sendMessage(senderId, primero);
+        MessageResponse segundaRespuesta = serviceConResolverReal.sendMessage(senderId, segundo);
+
+        assertThat(primeraRespuesta.conversationId()).isEqualTo(conversation.getId());
+        assertThat(segundaRespuesta.conversationId()).isEqualTo(conversation.getId());
+
+        ArgumentCaptor<MessageEntity> mensajes = ArgumentCaptor.forClass(MessageEntity.class);
+        verify(messageRepository, times(2)).save(mensajes.capture());
+        assertThat(mensajes.getAllValues())
+                .extracting(MessageEntity::getContent)
+                .containsExactly("Hola", "¿Tienes tiempo esta semana?");
+        assertThat(mensajes.getAllValues())
+                .extracting(MessageEntity::getConversation)
+                .containsOnly(conversation);
+        verify(conversationRepository, times(1)).save(any(ConversationEntity.class));
     }
 
     private ConversationEntity conversationWithId(UUID id, UUID participantOne, UUID participantTwo) {
