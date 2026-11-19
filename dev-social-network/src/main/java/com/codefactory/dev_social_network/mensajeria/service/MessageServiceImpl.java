@@ -15,6 +15,7 @@ import com.codefactory.dev_social_network.usuarios.dto.UsuarioDTO;
 import com.codefactory.dev_social_network.usuarios.interfaces.UsuarioQueryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.codefactory.dev_social_network.mensajeria.interfaces.ConversationReadPort;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -30,20 +31,25 @@ public class MessageServiceImpl implements MessageService {
     private final MessageRepository messageRepository;
     private final MessageMapper messageMapper;
     private final Clock clock;
+    private final ConversationReadPort conversationReadPort;
+
 
     public MessageServiceImpl(UsuarioQueryService usuarioQueryService,
                               ConversationResolver conversationResolver,
                               ConversationRepository conversationRepository,
                               MessageRepository messageRepository,
                               MessageMapper messageMapper,
-                              Clock clock) {
+                              Clock clock,
+                              ConversationReadPort conversationReadPort) {
         this.usuarioQueryService = usuarioQueryService;
         this.conversationResolver = conversationResolver;
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
         this.messageMapper = messageMapper;
         this.clock = clock;
+        this.conversationReadPort = conversationReadPort;
     }
+
 
     @Override
     @Transactional
@@ -67,20 +73,35 @@ public class MessageServiceImpl implements MessageService {
         return messageMapper.toResponse(messageRepository.save(message));
     }
 
+
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public List<MessageResponse> getConversationMessages(UUID requesterId, UUID conversationId) {
         ConversationEntity conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(ConversationNotFoundException::new);
 
         boolean isParticipant = requesterId.equals(conversation.getParticipantOneId())
                 || requesterId.equals(conversation.getParticipantTwoId());
+
         if (!isParticipant) {
             throw new ConversationAccessDeniedException();
         }
 
-        return messageRepository.findByConversation_IdOrderBySentAtAsc(conversationId).stream()
-                .map(messageMapper::toResponse)
-                .toList();
+        Instant readAt = Instant.now(clock);
+
+        List<MessageResponse> messages =
+                messageRepository.findByConversation_IdOrderBySentAtAsc(conversationId)
+                        .stream()
+                        .map(messageMapper::toResponse)
+                        .toList();
+
+        conversationReadPort.markAsRead(
+                requesterId,
+                conversationId,
+                readAt
+        );
+
+        return messages;
     }
+
 }
